@@ -280,49 +280,75 @@ char *setvalue(char *p, char *field, int size)
   return *p ? (p + 1) : p;
 }
 
+char* parseDoubleQuote(char *buf){
+    int i=0, counter=0;
+    bool flagInQuote=false;
+    char field[256];
+    char *tmp;
+  while(buf[i]!='\0'){
+	if(buf[i]=='\"' && flagInQuote==false){
+	  flagInQuote=true;
+	  i++;
+	}
+	if(buf[i]=='\"' && flagInQuote==true){
+	  field[counter]='\0';
+	  break;
+	}
+	if(flagInQuote==true){
+	  field[counter]=buf[i];
+	  counter++;
+	}	
+	i++;
+      }
+  tmp=&field[0];
+  printf("fieldが%sと解析されました\n",field);
+
+  return tmp;
+}
 
 char* getConnectString(){
 
-  FILE *fp;/* (1)ファイルポインタの宣言 */
+  FILE *fp;
   char buf[256]; // 256にしているのは手抜き実装
-  char field[256];
+  char *field;
   char *p;
   char *ret;
-  /* (2)ファイルのオープン */
   /*  ここで、ファイルポインタを取得する */
   if ((fp = fopen("connectionString.ini", "r")) == NULL) {
     printf("file open error!!\n");
-    exit(EXIT_FAILURE);/* (3)エラーの場合は通常、異常終了する */
+    exit(EXIT_FAILURE);/* エラーの場合は通常、異常終了する */
   }
 
   /* (4)ファイルの読み（書き）*/
   while (fgets(buf, 256, fp) != NULL) {
     char s1[] = "deviceId";
     /* ここではfgets()により１行単位で読み出し */
-    printf("%s", buf);
     if ((ret = strstr(buf, s1)) != NULL ) {
-      deviceId  = setvalue(p, field, sizeof(field));
-      printf("deviceID%sが設定されました．\n",deviceId);
+       field=parseDoubleQuote(buf);
+       deviceId  = field;
+       break;
     } else {
       //printf("%sはありませんでした．\n", s1);
     }
   }
+  printf("deviceIDに %s が設定されました．\n",deviceId);
 
   fseek(fp, 0L, SEEK_SET);
     while (fgets(buf, 256, fp) != NULL) {
     char s2[] = "connectionString";
     /* ここではfgets()により１行単位で読み出し */
-    printf("%s", buf);
     if ((ret = strstr(buf, s2)) != NULL ) {
-      connectionString  = setvalue(p, field, sizeof(field));
-      printf("connectionString%sが設定されました．\n",connectionString);
-    } else {
+      field=parseDoubleQuote(buf);
+      connectionString  = field;
+      break;
+    }
+    else
+    {
       //printf("%sはありませんでした．\n", s2);
     }
   }
-
+  printf("connectionString %s が設定されました．\n",connectionString);
   fclose(fp);/* (5)ファイルのクローズ */
-  printf("connectionString%sが設定されました．\n",*connectionString);
   return connectionString;
 }
 

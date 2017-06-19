@@ -6,10 +6,11 @@ int main(void)
 {
   char* connectionString;
   connectionString = getConnectString();
-  
+  printf("%sがmain関数で設定されています",connectionString);
   printf("Start Sample Program!!\n");
   //時間構造体を初期化
   time_t current_time,before_time;//時間計測用構造体
+
   time(&before_time);
   double sec_time;//時間（秒）
 
@@ -42,7 +43,7 @@ int main(void)
 
   printf("Temperature = %f(C) \n", getTemperature(0));
   //IOTHub初期化
-  IOTHUB_CLIENT_HANDLE iotHubClientHandle= IoTHubClient_CreateFromConnectionString(*connectionString, MQTT_Protocol);
+  IOTHUB_CLIENT_HANDLE iotHubClientHandle= IoTHubClient_CreateFromConnectionString(connectionString, MQTT_Protocol);
   remote_monitoring_init(&iotHubClientHandle);
   printf ("IoThub Init OK!\n");
 
