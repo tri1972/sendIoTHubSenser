@@ -280,11 +280,10 @@ char *setvalue(char *p, char *field, int size)
   return *p ? (p + 1) : p;
 }
 
-char* parseDoubleQuote(char *buf){
+void parseDoubleQuote(char *buf,char *output){
     int i=0, counter=0;
     bool flagInQuote=false;
     char field[256];
-    char *tmp;
   while(buf[i]!='\0'){
 	if(buf[i]=='\"' && flagInQuote==false){
 	  flagInQuote=true;
@@ -300,17 +299,16 @@ char* parseDoubleQuote(char *buf){
 	}	
 	i++;
       }
-  tmp=&field[0];
-  printf("fieldが%sと解析されました\n",field);
+  strcpy( output,field);
+  //printf("fieldが%sと解析されました\n",field);
 
-  return tmp;
 }
 
-char* getConnectString(){
+void getConnectString(char *deviceIdtmp,char *connectStringtmp){
 
   FILE *fp;
   char buf[256]; // 256にしているのは手抜き実装
-  char *field;
+  char *field,*field2;
   char *p;
   char *ret;
   /*  ここで、ファイルポインタを取得する */
@@ -324,22 +322,22 @@ char* getConnectString(){
     char s1[] = "deviceId";
     /* ここではfgets()により１行単位で読み出し */
     if ((ret = strstr(buf, s1)) != NULL ) {
-       field=parseDoubleQuote(buf);
-       deviceId  = field;
+       parseDoubleQuote(buf,deviceIdtmp);
+       deviceId  =deviceIdtmp;
        break;
     } else {
       //printf("%sはありませんでした．\n", s1);
     }
   }
-  printf("deviceIDに %s が設定されました．\n",deviceId);
+  printf("deviceIDに %s が設定されました．\n",deviceIdtmp);
 
   fseek(fp, 0L, SEEK_SET);
     while (fgets(buf, 256, fp) != NULL) {
     char s2[] = "connectionString";
     /* ここではfgets()により１行単位で読み出し */
     if ((ret = strstr(buf, s2)) != NULL ) {
-      field=parseDoubleQuote(buf);
-      connectionString  = field;
+      parseDoubleQuote(buf,connectStringtmp);
+      connectionString=connectStringtmp;
       break;
     }
     else
@@ -347,9 +345,8 @@ char* getConnectString(){
       //printf("%sはありませんでした．\n", s2);
     }
   }
-  printf("connectionString %s が設定されました．\n",connectionString);
+  printf("connectionString %s が設定されました．\n",connectStringtmp);
   fclose(fp);/* (5)ファイルのクローズ */
-  return connectionString;
 }
 
 

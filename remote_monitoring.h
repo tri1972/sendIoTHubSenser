@@ -15,5 +15,5 @@
 void remote_monitoring_run(void);
 void remote_monitoring_init(IOTHUB_CLIENT_HANDLE *iotHubClientHandle);
 void callback_remote_monitoring_run(IOTHUB_CLIENT_HANDLE *iotHubClientHandle,double temperature);
-char* getConnectString();
+void getConnectString(char *deviceIdtmp,char *connectStringtmp);
 #endif

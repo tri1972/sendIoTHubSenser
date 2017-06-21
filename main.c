@@ -4,9 +4,15 @@
 
 int main(void)
 {
+  char* deviceId;
   char* connectionString;
-  connectionString = getConnectString();
-  printf("%sがmain関数で設定されています",connectionString);
+  char tmp[256];
+  char tmp2[256];
+  deviceId=tmp;
+  connectionString=tmp2;
+  
+  getConnectString(deviceId,connectionString);
+  printf("%sがmain関数で設定されています\n",connectionString);
   printf("Start Sample Program!!\n");
   //時間構造体を初期化
   time_t current_time,before_time;//時間計測用構造体
