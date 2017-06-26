@@ -64,14 +64,28 @@ int main(void)
 
   struct dataRgbLedLoop loopData=initDataRgbLoop();
 
+  bool gpioRelay=true;
+  
   while(1){
 
     time(&current_time);
     sec_time=difftime(current_time,before_time);
     if(sec_time>60.0)//60秒に一回IOTへ送信
       {
+	double nowTemp=getTemperature(0);
 	before_time=current_time;
-	callback_remote_monitoring_run(&iotHubClientHandle,getTemperature(0));
+	callback_remote_monitoring_run(&iotHubClientHandle,nowTemp);
+	
+	//ファン用リレー オン/オフ
+	if(TemperatureLimit<nowTemp){
+	  gpioRelay=true;
+	  printf ("Relay On\n");
+
+	}else{
+	  gpioRelay=false;
+	  printf ("Relay Off\n");
+	}
+	digitalWrite(RELAYPIN, gpioRelay);
       }
     rgbLedLoop(&loopData);
   }

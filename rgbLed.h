@@ -8,7 +8,7 @@
 #define GREENPIN 3
 #define REDPIN 5
 #define BLUEPIN 4
-#define RELAYPIN 0
+//#define RELAYPIN 0
 
 //RGBループ用データ構造体
 struct dataRgbLedLoop{

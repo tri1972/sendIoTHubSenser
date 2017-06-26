@@ -12,6 +12,8 @@
 #include "../lib/lib_ST7032i.h"
 //#include "../lib/lib_capture.h"
 
+#define RELAYPIN 0
+
 void remote_monitoring_run(void);
 void remote_monitoring_init(IOTHUB_CLIENT_HANDLE *iotHubClientHandle);
 void callback_remote_monitoring_run(IOTHUB_CLIENT_HANDLE *iotHubClientHandle,double temperature);
