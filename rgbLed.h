@@ -5,9 +5,9 @@
 #include <wiringPi.h>
 #include <time.h>
 
-#define GREENPIN 3
-#define REDPIN 5
-#define BLUEPIN 4
+#define GREENPIN 23
+#define REDPIN 24
+#define BLUEPIN 26
 //#define RELAYPIN 0
 
 //RGBループ用データ構造体

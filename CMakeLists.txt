@@ -13,7 +13,7 @@ endmacro(compileAsC99)
 cmake_minimum_required(VERSION 2.8.11)
 compileAsC99()
 
-set(AZUREIOT_INC_FOLDER ".." "../parson" "/usr/include/azureiot" "/usr/include/azureiot/inc" "../lib")
+set(AZUREIOT_INC_FOLDER ".." "../parson" "/usr/include/azureiot" "/usr/local/include/azureiot" "/usr/include/azureiot/inc" "../lib")
 
 include_directories(${AZUREIOT_INC_FOLDER})
 
@@ -23,6 +23,8 @@ set(sample_application_c_files
   ./parson/parson.c
   ./remote_monitoring.c
   ./rgbLed.c
+  ./lib/libRotaryEncoder.c
+  ./lib/BME280.c
   ./main.c
   )
 
@@ -30,6 +32,8 @@ set(sample_application_h_files
   ./parson/parson.h
   ./remote_monitoring.h
   ./rgbLed.h
+  ./lib/libRotaryEncoder.h
+  ./lib/BME280.h
   )
 
 
@@ -50,5 +54,6 @@ target_link_libraries(sample_app
   crypto
   m
   wiringPi
+  wiringPiDev
   lib
   )
