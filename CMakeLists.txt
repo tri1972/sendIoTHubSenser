@@ -25,6 +25,7 @@ set(sample_application_c_files
   ./rgbLed.c
   ./lib/libRotaryEncoder.c
   ./lib/BME280.c
+  ./lib/lib_mcp3425.c
   ./main.c
   )
 
@@ -34,6 +35,7 @@ set(sample_application_h_files
   ./rgbLed.h
   ./lib/libRotaryEncoder.h
   ./lib/BME280.h
+  ./lib/lib_mcp3425.h
   )
 
 

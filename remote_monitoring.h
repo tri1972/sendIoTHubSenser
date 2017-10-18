@@ -7,9 +7,9 @@
 #include <wiringPi.h>
 #include <wiringPiSPI.h>
 
-#include "../lib/lib_mcp3002.h"
-#include "../lib/lib_mpl115a2.h"
-#include "../lib/lib_ST7032i.h"
+//#include "../lib/lib_mcp3002.h"
+//#include "../lib/lib_mpl115a2.h"
+//#include "../lib/lib_ST7032i.h"
 //#include "../lib/lib_capture.h"
 
 #define RELAYPIN 0
