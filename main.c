@@ -1,10 +1,13 @@
-#include  "sendIoTHubSenser.h"
-#include  "rgbLed.h"
+#include "sendIoTHubSenser.h"
+#include "rgbLed.h"
+#include "network.h"
 #include "lib/libRotaryEncoder.h"
 #include "lib/BME280.h"
 #include "lib/lib_mcp3425.h"
 #include <lcd.h>
 #include <math.h>
+#include <stdbool.h>
+#include <syslog.h>
 
 
 extern int positionRotary;//割り込みを使ったgetposition()での位置情報出力用変数
@@ -16,6 +19,10 @@ int main(void)
   char* connectionString;
   char tmp[256];
   char tmp2[256];
+  //IPアドレス取得
+  char* strIPAddress=getIpAddress();
+  syslog(LOG_NOTICE, "sendIoTHub started. IPAddress : ");
+  
   deviceId=tmp;
   connectionString=tmp2;
   /*
@@ -25,18 +32,31 @@ int main(void)
   printf("Start Sample Program!!\n");
   //時間構造体を初期化
   time_t current_time,before_time;//時間計測用構造体
-
   time(&before_time);
-  double sec_time;//時間（秒）
-
+  double sec_time,sec_time_before;//時間（秒）
+  bool isTimeChange=true;
+  struct tm *time_st;
+  
   //WiringPI初期化
-  if (wiringPiSetup() == -1)
+  if (wiringPiSetup() == -1){
+    syslog(LOG_ERR, "wiringPiSetup Aborted!");
     return 1;
+  }
   printf("Wiringpi setupOK\n");
+
+  //MPC3425初期化
+  int fd3425;
+  if ((fd3425 = wiringPiI2CSetup(MPL3425_ID)) == -1)
+    {
+      syslog(LOG_ERR, "wiringPiI2CSetup with MCP3425 Aborted!");
+      return 1 ;
+    }
   
   //BME280初期化
- if(init_dev()==1)  return 1;
-
+  if(init_dev()==1){
+    syslog(LOG_ERR, "wiringPiI2CSetup with BME280 Aborted!");
+    return 1;
+  }
   
   //LED初期化
   pinMode(GREENPIN, OUTPUT);
@@ -50,10 +70,11 @@ int main(void)
 
   //LCD初期化
   int fd;
-  char lcdStr[255];
+  char lcdStr1L[30];
+  char lcdStr2L[30];
   fd = lcdInit(2,16,4,0,3,4,5,6,7,0,0,0,0);
   lcdClear(fd);
-  lcdPuts(fd,"Logging Start!");
+  lcdPuts(fd,"LCD Start!");
   lcdPosition(fd,0,1);
   lcdPuts(fd,"OK");
 
@@ -66,13 +87,6 @@ int main(void)
 
   int beforeRotaryPosition;
   int lcdSTATUS;
-
-  //MPC3425初期化
-  int fd3425;
-  
-  fd3425 = wiringPiI2CSetup(MPL3425_ID);
-
-  
   /*
   //IOTHub初期化
   IOTHUB_CLIENT_HANDLE iotHubClientHandle= IoTHubClient_CreateFromConnectionString(connectionString, MQTT_Protocol);
@@ -92,19 +106,19 @@ int main(void)
   struct dataRgbLedLoop loopData=initDataRgbLoop();
 
   bool gpioRelay=true;
-  
   while(1){
-
     time(&current_time);
     sec_time=difftime(current_time,before_time);
-    if(sec_time>60.0)//60秒に一回IOTへ送信
+    if(sec_time!=sec_time_before){
+      isTimeChange=true;
+      sec_time_before=sec_time;
+    }else{
+      isTimeChange=false;
+    }
+    
+    if(((int)sec_time % 60) == 0 && isTimeChange)//60秒に一回IOTへ送信
       {
 	double nowTemp=getTemperature(fd3425);
-	before_time=current_time;//60秒に一回時間カウンタをクリア
-	/*
-	callback_remote_monitoring_run(&iotHubClientHandle,nowTemp);
-	*/
-	//ファン用リレー オン/オフ
 	if(TemperatureLimit<nowTemp){
 	  gpioRelay=true;
 	  printf ("Relay On\n");
@@ -117,27 +131,44 @@ int main(void)
       }
 
     int mod=(int)sec_time % 1;
-    if(mod == 0)
+    if(((int)sec_time % 1) == 0 && isTimeChange)
       {//1秒に一回LCD出力
 
 	//ロータリースイッチデータ取得(割り込み)
-	lcdSTATUS=abs(positionRotary) % 4;
-	//printf("Now Position %d\n",positionRotary);
-
+	lcdSTATUS=abs(positionRotary) % 6;
 	readData();
 
 	if(lcdSTATUS==0){
-	  sprintf(lcdStr,"TEMP :%4f C",(double)calibration_T(temp_raw)/100.0);
+	  sprintf(lcdStr1L,"Temperature     ");
+	  sprintf(lcdStr2L,"%-3.6f C     ",(double)calibration_T(temp_raw)/100.0);
 	}else if(lcdSTATUS==1){
-	  sprintf(lcdStr,"PRES :%4f hPa",(double)calibration_P(pres_raw)/100.0);
+	  sprintf(lcdStr1L,"Pressure        ");
+	  sprintf(lcdStr2L,"%-4.6f hPa ",(double)calibration_P(pres_raw)/100.0);
 	}else if(lcdSTATUS==2){
-	  sprintf(lcdStr,"HUMI :%4f %",(double)calibration_H(hum_raw)/1024.0);
-	}else{
-	  sprintf(lcdStr,"TEMPIN :%4f C",getTemperature(fd3425));
+	  sprintf(lcdStr1L,"Humidity        ");
+	  sprintf(lcdStr2L,"%-2.6f %%     ",(double)calibration_H(hum_raw)/1024.0);
+	}else if(lcdSTATUS==3){
+	  sprintf(lcdStr1L,"ThermistaTemp   ");
+	  sprintf(lcdStr2L,"%-3.6f C     ",getTemperature(fd3425));
+        }else if(lcdSTATUS==4){
+	  sprintf(lcdStr1L,"IPAddress:wlan0 ");
+	  sprintf(lcdStr2L,"%s ",strIPAddress);
+        }else{
+	  time_st = localtime(&current_time);
+	  sprintf(lcdStr1L, "%d-%d-%d     ",
+		 time_st->tm_year + 1900,
+		 time_st->tm_mon + 1,
+		 time_st->tm_mday);
+	  sprintf(lcdStr2L, "%02d:%02d:%02d       ",
+		 time_st->tm_hour,
+		 time_st->tm_min,
+		 time_st->tm_sec);
 	}
-	lcdPosition(fd,0,1);
-	lcdPuts(fd,lcdStr);
       }
+    lcdPosition(fd,0,0);
+    lcdPuts(fd,lcdStr1L);
+    lcdPosition(fd,0,1);
+    lcdPuts(fd,lcdStr2L);
     
     //ロータリースイッチデータ取得(ポーリング)
     //int nowPosition;

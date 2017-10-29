@@ -12,7 +12,7 @@
 //#include "../lib/lib_ST7032i.h"
 //#include "../lib/lib_capture.h"
 
-#define RELAYPIN 0
+#define RELAYPIN 27
 
 void remote_monitoring_run(void);
 void remote_monitoring_init(IOTHUB_CLIENT_HANDLE *iotHubClientHandle);
