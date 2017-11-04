@@ -87,8 +87,10 @@ int main(void)
 
   int beforeRotaryPosition;
   int lcdSTATUS;
-  /*
+  
   //IOTHub初期化
+  getConnectString(deviceId,connectionString);
+  printf("%sがmain関数で設定されています\n",connectionString);  
   IOTHUB_CLIENT_HANDLE iotHubClientHandle= IoTHubClient_CreateFromConnectionString(connectionString, MQTT_Protocol);
   remote_monitoring_init(&iotHubClientHandle);
   printf ("IoThub Init OK!\n");
@@ -101,7 +103,7 @@ int main(void)
   {
     printf("iotHubClientHandle OK!\n");
   }
-  */
+  
 
   struct dataRgbLedLoop loopData=initDataRgbLoop();
 
@@ -119,6 +121,7 @@ int main(void)
     if(((int)sec_time % 60) == 0 && isTimeChange)//60秒に一回IOTへ送信
       {
 	double nowTemp=getTemperature(fd3425);
+	callback_remote_monitoring_run(&iotHubClientHandle,nowTemp);	
 	if(TemperatureLimit<nowTemp){
 	  gpioRelay=true;
 	  printf ("Relay On\n");
