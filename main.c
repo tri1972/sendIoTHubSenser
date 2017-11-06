@@ -4,14 +4,20 @@
 #include "lib/libRotaryEncoder.h"
 #include "lib/BME280.h"
 #include "lib/lib_mcp3425.h"
+#include "daemonize/daemonize.h"
 #include <lcd.h>
 #include <math.h>
 #include <stdbool.h>
 #include <syslog.h>
-
+#include <unistd.h>
+#include <stdio.h>
 
 extern int positionRotary;//割り込みを使ったgetposition()での位置情報出力用変数
 extern void getPositionISR(void);//割り込みを使ったロータリースイッチ位置検出
+
+
+static volatile int sigterm = 0;
+static void handle_sigterm(int sig) { sigterm = 1; }
 
 int main(void)
 {
@@ -19,15 +25,29 @@ int main(void)
   char* connectionString;
   char tmp[256];
   char tmp2[256];
+  /* syslog オープン*/
+  openlog("sendIoTHub", LOG_PID, LOG_DAEMON);
+  //daemon化初期化
+  
+  if(!daemonize("/var/run/sendIoTHub.pid",
+		"sendIoTHub", LOG_PID, LOG_DAEMON))
+    {
+      syslog(LOG_ERR,"failed to daemonize.");
+      //fprintf(stderr, "failed to daemonize.\n");
+      return 2; // fail to start daemon
+    }
+  
   //IPアドレス取得
   char* strIPAddress=getIpAddress();
-  syslog(LOG_NOTICE, "sendIoTHub started. IPAddress : ");
+  char strsyslog[255];
+  sprintf(strsyslog,"sendIoTHub started!!!!!!!!!!!! IPAddress : %s",strIPAddress);
+  syslog(LOG_NOTICE,strsyslog);
   
   deviceId=tmp;
   connectionString=tmp2;
   /*
-  getConnectString(deviceId,connectionString);
-  printf("%sがmain関数で設定されています\n",connectionString);
+    getConnectString(deviceId,connectionString);
+    printf("%sがmain関数で設定されています\n",connectionString);
   */
   printf("Start Sample Program!!\n");
   //時間構造体を初期化
@@ -48,15 +68,17 @@ int main(void)
   int fd3425;
   if ((fd3425 = wiringPiI2CSetup(MPL3425_ID)) == -1)
     {
-      syslog(LOG_ERR, "wiringPiI2CSetup with MCP3425 Aborted!");
+      syslog(LOG_NOTICE, "wiringPiI2CSetup with MCP3425 Aborted!");
       return 1 ;
     }
+  syslog(LOG_NOTICE, "wiringPiI2CSetup with MCP3425 OK!");
   
   //BME280初期化
   if(init_dev()==1){
     syslog(LOG_ERR, "wiringPiI2CSetup with BME280 Aborted!");
     return 1;
   }
+  syslog(LOG_NOTICE, "wiringPiI2CSetup with BME280 OK!");
   
   //LED初期化
   pinMode(GREENPIN, OUTPUT);
@@ -87,28 +109,33 @@ int main(void)
 
   int beforeRotaryPosition;
   int lcdSTATUS;
+  syslog(LOG_NOTICE, "RotaryEncoder Init OK!");
+
   
   //IOTHub初期化
   getConnectString(deviceId,connectionString);
-  printf("%sがmain関数で設定されています\n",connectionString);  
   IOTHUB_CLIENT_HANDLE iotHubClientHandle= IoTHubClient_CreateFromConnectionString(connectionString, MQTT_Protocol);
   remote_monitoring_init(&iotHubClientHandle);
-  printf ("IoThub Init OK!\n");
+  syslog(LOG_NOTICE, "IoThub Init OK!");
 
   if  (iotHubClientHandle== NULL)
-  {
-      printf("Failure in iotHubClientHandle_NULL\n");
-  }
+    {
+      syslog(LOG_NOTICE, "Failure in iotHubClientHandle_NULL");
+    }
   else
-  {
-    printf("iotHubClientHandle OK!\n");
-  }
+    {
+      syslog(LOG_NOTICE, "iotHubClientHandle OK!");
+    }
   
-
+  
   struct dataRgbLedLoop loopData=initDataRgbLoop();
 
   bool gpioRelay=true;
-  while(1){
+
+  //daemonループの開始
+  syslog(LOG_NOTICE, "sendIoTHubSenserLoop started.");
+  signal(SIGTERM, handle_sigterm);  
+  while(!sigterm){
     time(&current_time);
     sec_time=difftime(current_time,before_time);
     if(sec_time!=sec_time_before){
@@ -124,11 +151,8 @@ int main(void)
 	callback_remote_monitoring_run(&iotHubClientHandle,nowTemp);	
 	if(TemperatureLimit<nowTemp){
 	  gpioRelay=true;
-	  printf ("Relay On\n");
-
 	}else{
 	  gpioRelay=false;
-	  printf ("Relay Off\n");
 	}
 	digitalWrite(RELAYPIN, gpioRelay);
       }
@@ -153,19 +177,19 @@ int main(void)
 	}else if(lcdSTATUS==3){
 	  sprintf(lcdStr1L,"ThermistaTemp   ");
 	  sprintf(lcdStr2L,"%-3.6f C     ",getTemperature(fd3425));
-        }else if(lcdSTATUS==4){
+	}else if(lcdSTATUS==4){
 	  sprintf(lcdStr1L,"IPAddress:wlan0 ");
 	  sprintf(lcdStr2L,"%s ",strIPAddress);
-        }else{
+	}else{
 	  time_st = localtime(&current_time);
 	  sprintf(lcdStr1L, "%d-%d-%d     ",
-		 time_st->tm_year + 1900,
-		 time_st->tm_mon + 1,
-		 time_st->tm_mday);
+		  time_st->tm_year + 1900,
+		  time_st->tm_mon + 1,
+		  time_st->tm_mday);
 	  sprintf(lcdStr2L, "%02d:%02d:%02d       ",
-		 time_st->tm_hour,
-		 time_st->tm_min,
-		 time_st->tm_sec);
+		  time_st->tm_hour,
+		  time_st->tm_min,
+		  time_st->tm_sec);
 	}
       }
     lcdPosition(fd,0,0);
@@ -181,5 +205,6 @@ int main(void)
       
     rgbLedLoop(&loopData);
   }
+  syslog(LOG_NOTICE, "sendIoTHubSenser stopped.\n");
   return 0;
 }

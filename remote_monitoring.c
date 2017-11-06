@@ -6,6 +6,7 @@
 #include "azure_c_shared_utility/threadapi.h"
 #include "azure_c_shared_utility/platform.h"
 #include "parson.h"
+#include <syslog.h>
 
 
 char* deviceId;
@@ -313,7 +314,8 @@ void getConnectString(char *deviceIdtmp,char *connectStringtmp){
   char *ret;
   /*  ここで、ファイルポインタを取得する */
   if ((fp = fopen("connectionString.ini", "r")) == NULL) {
-    printf("file open error!!\n");
+    //printf("file open error!!\n");
+    syslog(LOG_NOTICE,"Inifile open error!!");
     exit(EXIT_FAILURE);/* エラーの場合は通常、異常終了する */
   }
 

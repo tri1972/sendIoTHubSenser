@@ -19,7 +19,7 @@ include_directories(${AZUREIOT_INC_FOLDER})
 
 add_subdirectory(lib)
 
-set(sendIoTHubd_c_files
+set(sendIoTHub_c_files
   ./parson/parson.c
   ./remote_monitoring.c
   ./rgbLed.c
@@ -27,10 +27,11 @@ set(sendIoTHubd_c_files
   ./lib/libRotaryEncoder.c
   ./lib/BME280.c
   ./lib/lib_mcp3425.c
+  ./daemonize/daemonize.c
   ./main.c
   )
 
-set(sendIoTHubd_h_files
+set(sendIoTHub_h_files
   ./parson/parson.h
   ./remote_monitoring.h
   ./rgbLed.h
@@ -38,15 +39,16 @@ set(sendIoTHubd_h_files
   ./lib/libRotaryEncoder.h
   ./lib/BME280.h
   ./lib/lib_mcp3425.h
+  ./daemonize/daemonize.h
   )
 
 
 
 
-add_executable(sendIoTHubd ${sendIoTHubd_c_files} ${sendIoTHubd_h_files})
+add_executable(sendIoTHub ${sendIoTHub_c_files} ${sendIoTHub_h_files})
 
 
-target_link_libraries(sendIoTHubd
+target_link_libraries(sendIoTHub
   serializer
   iothub_client
   iothub_client_mqtt_transport
