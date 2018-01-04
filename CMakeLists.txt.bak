@@ -13,21 +13,11 @@ endmacro(compileAsC99)
 cmake_minimum_required(VERSION 2.8.11)
 compileAsC99()
 
-# インストールターゲットを追加
-install (TARGETS ../sendIoTHub DESTINATION bin)
-install (FILES "${PROJECT_BINARY_DIR}/TutorialConfig.h"
-           DESTINATION include)
-
-
 set(AZUREIOT_INC_FOLDER ".." "../parson" "/usr/include/azureiot" "/usr/local/include/azureiot" "/usr/include/azureiot/inc" "../lib")
 
 include_directories(${AZUREIOT_INC_FOLDER})
 
 add_subdirectory(lib)
-
-set(PROJECT_BINARY_DIR
-  ./bintmp
-  )
 
 set(sendIoTHub_c_files
   ./parson/parson.c
