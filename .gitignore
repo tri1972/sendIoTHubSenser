@@ -65,5 +65,6 @@ CTestTestfile.cmake
 #special
 connectionString.ini
 connectionString.ini~
-
+sendIoTHubSenser.conf
+sendIoTHubSenser.conf~
 *~
