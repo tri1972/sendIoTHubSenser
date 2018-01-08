@@ -1,14 +1,15 @@
 
 [Unit]
 Description=sendIoTHub
+After=dhcpcd.service smbd.service
 
 [Service]
 Type=forking
 user=root
-WorkingDirectory=/home/tri/source/sendIoTHubSenser/cmake
+# WorkingDirectory=/usr/local/bin/sendIoTHub
 PIDFile=/var/run/sendIoTHub.pid
 Restart=on-success
-ExecStart=/home/tri/source/sendIoTHubSenser/cmake/sendIoTHub
+ExecStart=/usr/local/bin/sendIoTHub
 ExecStop=/bin/kill -SIGTERM $PIDFile
 
 [Install]

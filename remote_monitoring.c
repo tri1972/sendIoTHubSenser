@@ -7,7 +7,7 @@
 #include "azure_c_shared_utility/platform.h"
 #include "parson.h"
 #include <syslog.h>
-
+#include "remote_monitoring.h"
 
 char* deviceId;
 char* connectionString;
@@ -313,7 +313,7 @@ void getConnectString(char *deviceIdtmp,char *connectStringtmp){
   char *p;
   char *ret;
   /*  ここで、ファイルポインタを取得する */
-  if ((fp = fopen("connectionString.ini", "r")) == NULL) {
+  if ((fp = fopen(PATH_CONFIGFILE, "r")) == NULL) {
     //printf("file open error!!\n");
     syslog(LOG_NOTICE,"Inifile open error!!");
     exit(EXIT_FAILURE);/* エラーの場合は通常、異常終了する */

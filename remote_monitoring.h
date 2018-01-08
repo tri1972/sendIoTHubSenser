@@ -13,6 +13,7 @@
 //#include "../lib/lib_capture.h"
 
 #define RELAYPIN 27
+#define PATH_CONFIGFILE "/etc/sendIoTHubSenser.conf"
 
 void remote_monitoring_run(void);
 void remote_monitoring_init(IOTHUB_CLIENT_HANDLE *iotHubClientHandle);

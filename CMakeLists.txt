@@ -14,8 +14,10 @@ endmacro(compileAsC99)
 compileAsC99()
 project (sendIoTHubSenser)
 
+# インクルードファイルの探索パスにバイナリツリーを追加
+include_directories("${PROJECT_BINARY_DIR}")
 
-
+#プロジェクトディレクトリのファイルを追加
 set(sendIoTHub_c_files
   ./remote_monitoring.c
   ./rgbLed.c
@@ -31,8 +33,7 @@ set(sendIoTHub_h_files
 add_executable(sendIoTHub ${sendIoTHub_c_files} ${sendIoTHub_h_files})
 
 # インストールターゲットを追加
-
-
+# AzureIoT SDKの追加
 set(AZUREIOT_INC_FOLDER
   ".."
   "/usr/include/azureiot"
@@ -41,6 +42,7 @@ set(AZUREIOT_INC_FOLDER
   )
 include_directories(${AZUREIOT_INC_FOLDER})
 
+#サブディレクトリに配置したライブラリの追加
 include_directories ("${PROJECT_SOURCE_DIR}/parson")
 add_subdirectory (parson)
 set (EXTRA_LIBS ${EXTRA_LIBS} parsonFunctions)
@@ -68,3 +70,15 @@ target_link_libraries(sendIoTHub
   wiringPiDev
   ${EXTRA_LIBS}
   )
+
+#### インストールターゲットを追加
+# CMAKE_INSTALL_PREFIX (default=/usr/local)以下に install される
+install (TARGETS sendIoTHub DESTINATION bin)
+install (FILES "${PROJECT_SOURCE_DIR}/sendIoTHubSenser.h"
+DESTINATION include)
+install (FILES "${PROJECT_SOURCE_DIR}/remote_monitoring.h"
+DESTINATION include)
+install (FILES "${PROJECT_SOURCE_DIR}/sendIoTHubSenser.conf"
+DESTINATION /etc/)
+install (FILES "${PROJECT_SOURCE_DIR}/sendIoTHubSenser.service"
+DESTINATION /etc/systemd/system/)
