@@ -27,8 +27,13 @@ cmake --build .
 
 sudo　make install
 
+５. ライブラリファイルを以下のgitリポジトリより取得します
 
-５．このsendIoTHubSenserアプリケーションのビルドを行います。
+https://github.com/tritri/raspberryPiLib.git
+
+得たファイルについてはプロジェクトの/libフォルダにコピーしきます
+
+６．このsendIoTHubSenserアプリケーションのビルドを行います。
 
 /cmake　ディレクトリに移動し次のコマンドを打ちます
 
@@ -37,3 +42,7 @@ sudo　make install
 /cmakeに入ったまま、makeします
 
 % make
+
+/root権限でインストールします
+
+% make install
