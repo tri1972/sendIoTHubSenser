@@ -148,7 +148,7 @@ int main(void)
     if(((int)sec_time % 60) == 0 && isTimeChange)//60秒に一回IOTへ送信
       {
 	double nowTemp=getTemperature(fd3425);
-	callback_remote_monitoring_run(&iotHubClientHandle,nowTemp);	
+	callback_remote_monitoring_run(&iotHubClientHandle,nowTemp,(double)calibration_H(hum_raw)/1024.0,(double)calibration_T(temp_raw)/100.0,(double)calibration_P(pres_raw)/100.0);	
 	if(TemperatureLimit<nowTemp){
 	  gpioRelay=true;
 	}else{

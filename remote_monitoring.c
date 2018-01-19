@@ -55,6 +55,7 @@ DECLARE_DEVICETWIN_MODEL(Thermostat,
 			 WITH_DATA(double, Temperature),
 			 WITH_DATA(double, ExternalTemperature),
 			 WITH_DATA(double, Humidity),
+			 WITH_DATA(double, Pressure),
 			 WITH_DATA(ascii_char_ptr, DeviceId),
 
 			 /* DeviceInfo */
@@ -196,7 +197,7 @@ Thermostat* CreateIoTHubDeviceTwin(IOTHUB_CLIENT_HANDLE iotHubClientHandle )
 }
 
 
-void callback_remote_monitoring_run(IOTHUB_CLIENT_HANDLE *iotHubClientHandle,double temperature)
+void callback_remote_monitoring_run(IOTHUB_CLIENT_HANDLE *iotHubClientHandle,double temperature,double humidity,double externalTemperature,double pressure )
 {
   if  (iotHubClientHandle== NULL)
   {
@@ -220,8 +221,9 @@ void callback_remote_monitoring_run(IOTHUB_CLIENT_HANDLE *iotHubClientHandle,dou
     {
       /* Send telemetry */
       thermostat->Temperature = temperature;
-      thermostat->ExternalTemperature = 55;
-      thermostat->Humidity = 50;
+      thermostat->ExternalTemperature = externalTemperature;
+      thermostat->Humidity = humidity;
+      thermostat->Pressure = pressure;
       thermostat->DeviceId = (char*)deviceId;
     }
   unsigned char*buffer;
@@ -230,7 +232,7 @@ void callback_remote_monitoring_run(IOTHUB_CLIENT_HANDLE *iotHubClientHandle,dou
 
   (void)printf("Sending sensor value Temperature = %f, Humidity = %f\n", thermostat->Temperature, thermostat->Humidity);
 
-  if (SERIALIZE(&buffer, &bufferSize, thermostat->DeviceId, thermostat->Temperature, thermostat->Humidity, thermostat->ExternalTemperature) != CODEFIRST_OK)
+  if (SERIALIZE(&buffer, &bufferSize, thermostat->DeviceId, thermostat->Temperature, thermostat->Humidity, thermostat->ExternalTemperature,thermostat->Pressure) != CODEFIRST_OK)
     {
       (void)printf("Failed sending sensor value\r\n");
     }
