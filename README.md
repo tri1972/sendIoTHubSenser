@@ -43,6 +43,17 @@ https://github.com/tritri/raspberryPiLib.git
 
 % make
 
+７．インストールを実行します
+
+プロジェクトフォルダに以下のファイルを作成してください
+
+%touch ../sendIoTHubSenser.conf
+
+中身は以下のものとなります。AzureIoTHubへのデバイスIDと接続文字列を""内に割り当ててください
+
+deviceId = "",
+connectionString = ""
+
 /root権限でインストールします
 
 % make install
