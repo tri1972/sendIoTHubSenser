@@ -4,6 +4,7 @@
 #include "lib/libRotaryEncoder.h"
 #include "lib/BME280.h"
 #include "lib/lib_mcp3425.h"
+#include "lib/lib_buttonWithLamp.h"
 #include "daemonize/daemonize.h"
 #include <lcd.h>
 #include <math.h>
@@ -111,6 +112,10 @@ int main(void)
   int lcdSTATUS;
   syslog(LOG_NOTICE, "RotaryEncoder Init OK!");
 
+  //ボタン初期化
+  initButton();
+  wiringPiISR(BOARD_SW5, INT_EDGE_BOTH,getOnOffSwitch5);
+  
   
   //IOTHub初期化
   getConnectString(deviceId,connectionString);
