@@ -1,5 +1,5 @@
 # sendIoTHubSenser
-まずazureiotsdkのインストールを行う必要があります。（wiringPIのインストールも前もって実行してください）
+azureiotsdkのインストールを行う必要があります。（wiringPIのインストールも前もって実行してください）
 
 １．buildにひつようなパッケージをインストールします
 
