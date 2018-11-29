@@ -114,7 +114,8 @@ int main(void)
 
   //ボタン初期化
   initButton();
-  wiringPiISR(BOARD_SW5, INT_EDGE_BOTH,getOnOffSwitch5);
+  //ボタンoff→on時のみ割り込む
+  wiringPiISR(BOARD_SW5,INT_EDGE_FALLING,getOnOffSwitch5);
   
   
   //IOTHub初期化
@@ -207,8 +208,7 @@ int main(void)
     //nowPosition=getPosition();
     //lcdSTATUS=abs(nowPosition) % 3;
     //printf ("lcdStatus : %d Nowposition : %d \n",lcdSTATUS,abs(nowPosition));
-      
-    rgbLedLoop(&loopData);
+    rgbLedLoop(&loopData,isOnSw5);
   }
   syslog(LOG_NOTICE, "sendIoTHubSenser stopped.\n");
   return 0;

@@ -1,5 +1,8 @@
 #include  "rgbLed.h"
 
+unsigned char rgbPatternNum=0;
+unsigned char rgbPattern [3]={0b0011,0b0110,0b0101};  
+int rgbPatternLength=3;
 
 struct dataRgbLedLoop initDataRgbLoop(void){
 
@@ -44,7 +47,7 @@ void rgbPoling(int r,int g,int b){
 }
 
 
-void rgbLedLoop(struct dataRgbLedLoop *loopdat){
+void rgbLedLoop(struct dataRgbLedLoop *loopdat,bool isInterrup){
   /*
   useconds_t tick = *( int * )ptr;
   bool flagR=true,flagG=true,flagB=true;
@@ -55,6 +58,49 @@ void rgbLedLoop(struct dataRgbLedLoop *loopdat){
   ts.tv_sec=0;//1sを指定
   ts.tv_nsec=1000000;//0nsを指定
   */
+  
+  if(isInterrup==false){
+    loopdat->calcData=(loopdat->currentFlag & 0x01)-(loopdat->beforeFlag & 0x01);
+    if(loopdat->calcData<0){
+      loopdat->rlux--;
+    }else if(loopdat->calcData==0){
+      ;
+    }else{
+      loopdat->rlux++;
+    }
+    loopdat->calcData=(loopdat->currentFlag & 0x02)-(loopdat->beforeFlag & 0x02);
+    if(loopdat->calcData<0){
+      loopdat->glux--;
+    }else if(loopdat->calcData==0){
+      ;
+    }else{
+      loopdat->glux++;
+    }
+    loopdat->calcData=(loopdat->currentFlag & 0x04)-(loopdat->beforeFlag & 0x04);
+    if(loopdat->calcData<0){
+      loopdat->blux--;
+    }else if(loopdat->calcData==0){
+      ;
+    }else{
+      loopdat->blux++;
+    }
+   
+    if(loopdat->counter>1024){
+      loopdat->counter=0;
+
+      if(rgbPatternNum< rgbPatternLength){
+	rgbPatternNum++;
+      }else{
+	rgbPatternNum=0;
+      }
+      loopdat->counter=0;
+      loopdat->beforeFlag=loopdat->currentFlag;
+      loopdat->currentFlag=rgbPattern[rgbPatternNum];
+    }else{
+      loopdat->counter++;
+    }
+  /*
+  if(isInterrup==false){
     loopdat->calcData=(loopdat->currentFlag & 0x01)-(loopdat->beforeFlag & 0x01);
     if(loopdat->calcData<0){
       loopdat->rlux--;
@@ -88,9 +134,13 @@ void rgbLedLoop(struct dataRgbLedLoop *loopdat){
     }else{
       loopdat->counter++;
     }
-
+  */
     //printf("%d\n",lightLux);
     //rgbPoling(0,glux,0);
     rgbPoling(loopdat->rlux,loopdat->glux,loopdat->blux);
-  
+  }else{
+    	digitalWrite(REDPIN, false);
+	digitalWrite(GREENPIN, false);
+	digitalWrite(BLUEPIN, false);
+  }  
 }

@@ -24,8 +24,9 @@ struct dataRgbLedLoop{
   int calcData;
 };
 
+bool isCurrentInterrupted;
 struct dataRgbLedLoop initDataRgbLoop(void);
-void rgbLedLoop(struct dataRgbLedLoop *loopdat);
+void rgbLedLoop(struct dataRgbLedLoop *loopdat,bool isInterrup);
 void rgbPoling(int r,int g,int b);
 
 
