@@ -11,6 +11,7 @@
 
 char* deviceId;
 char* connectionString;
+char errStr[256];
 
 //static const char* deviceId = "[Device Id]";
 //static const char* connectionString = "HostName=[IoTHub Name].azure-devices.net;DeviceId=[Device Id];SharedAccessKey=[Device Key]";
@@ -122,17 +123,18 @@ static void sendMessage(IOTHUB_CLIENT_HANDLE iotHubClientHandle, const unsigned 
   IOTHUB_MESSAGE_HANDLE messageHandle = IoTHubMessage_CreateFromByteArray(buffer, size);
   if (messageHandle == NULL)
     {
-      printf("unable to create a new IoTHubMessage\r\n");
+      syslog(LOG_ERR,"unable to create a new IoTHubMessage");
     }
   else
     {
       if (IoTHubClient_SendEventAsync(iotHubClientHandle, messageHandle, NULL, NULL) != IOTHUB_CLIENT_OK)
 	{
-	  printf("failed to hand over the message to IoTHubClient");
+	  syslog(LOG_ERR,"failed to hand over the message to IoTHubClient");
 	}
       else
 	{
-	  printf("IoTHubClient accepted the message for delivery\r\n");
+	  sprintf(errStr, "IoTHubClient accepted the message for delivery :%s", buffer);      
+	  syslog(LOG_NOTICE,errStr);
 	}
 
       IoTHubMessage_Destroy(messageHandle);
@@ -201,21 +203,21 @@ void callback_remote_monitoring_run(IOTHUB_CLIENT_HANDLE *iotHubClientHandle,dou
 {
   if  (iotHubClientHandle== NULL)
   {
-      printf("Failure in iotHubClientHandle_NULL\n");
+      syslog(LOG_ERR,"Failure in iotHubClientHandle_NULL");
   }
   else
   {
-    printf("iotHubClientHandle OK!\n");
+    //printf("iotHubClientHandle OK!\n");
   }
 
   Thermostat* thermostat =CreateIoTHubDeviceTwin(*iotHubClientHandle);
 
   //Thermostat* thermostat = IoTHubDeviceTwin_CreateThermostat(iotHubClientHandle);
-  printf("IoTHubDeviceTwin_CreateThermostat OK!!\n");
+  //printf("IoTHubDeviceTwin_CreateThermostat OK!!\n");
 
   if (thermostat == NULL)
     {
-      printf("Failure in IoTHubDeviceTwin_CreateThermostat\n");
+      syslog(LOG_ERR,"Failure in IoTHubDeviceTwin_CreateThermostat");
     }
   else
     {
@@ -234,7 +236,7 @@ void callback_remote_monitoring_run(IOTHUB_CLIENT_HANDLE *iotHubClientHandle,dou
 
   if (SERIALIZE(&buffer, &bufferSize, thermostat->DeviceId, thermostat->Temperature, thermostat->Humidity, thermostat->ExternalTemperature,thermostat->Pressure) != CODEFIRST_OK)
     {
-      (void)printf("Failed sending sensor value\r\n");
+      syslog(LOG_ERR,"Failed to make JSON msg sending sensor value:");
     }
   else
     {
@@ -316,7 +318,6 @@ void getConnectString(char *deviceIdtmp,char *connectStringtmp){
   char *ret;
   /*  ここで、ファイルポインタを取得する */
   if ((fp = fopen(PATH_CONFIGFILE, "r")) == NULL) {
-    //printf("file open error!!\n");
     syslog(LOG_NOTICE,"Inifile open error!!");
     exit(EXIT_FAILURE);/* エラーの場合は通常、異常終了する */
   }
@@ -330,10 +331,11 @@ void getConnectString(char *deviceIdtmp,char *connectStringtmp){
        deviceId  =deviceIdtmp;
        break;
     } else {
-      //printf("%sはありませんでした．\n", s1);
+      sprintf(errStr, "%sはありませんでした", s1);      
+      syslog(LOG_ERR,errStr);
     }
   }
-  printf("deviceIDに %s が設定されました．\n",deviceIdtmp);
+  printf("deviceIDに %s が設定されました",deviceIdtmp);
 
   fseek(fp, 0L, SEEK_SET);
     while (fgets(buf, 256, fp) != NULL) {
@@ -346,10 +348,12 @@ void getConnectString(char *deviceIdtmp,char *connectStringtmp){
     }
     else
     {
-      //printf("%sはありませんでした．\n", s2);
+      sprintf(errStr,"%sはありませんでした．\n", s2);      
+      syslog(LOG_ERR,errStr);
     }
   }
-  printf("connectionString %s が設定されました．\n",connectStringtmp);
+  sprintf(errStr,"connectionString %s が設定されました．\n",connectStringtmp);      
+  syslog(LOG_NOTICE,errStr);
   fclose(fp);/* (5)ファイルのクローズ */
 }
 
