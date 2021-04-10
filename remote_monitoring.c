@@ -152,13 +152,13 @@ Thermostat* CreateIoTHubDeviceTwin(IOTHUB_CLIENT_HANDLE iotHubClientHandle )
 {
     if (iotHubClientHandle == NULL)
     {
-      printf("Failure in iotHubClientHandle is NULL\n");
+      syslog(LOG_ERR,"Failure in iotHubClientHandle is NULL");
     }else{
     }
   Thermostat* thermostat = IoTHubDeviceTwin_CreateThermostat(iotHubClientHandle);
   if (thermostat == NULL)
     {
-      printf("Failure in IoTHubDeviceTwin_CreateThermostat\n");
+      syslog(LOG_ERR,"Failure in IoTHubDeviceTwin_CreateThermostat");
     }
   else
     {
@@ -181,11 +181,11 @@ Thermostat* CreateIoTHubDeviceTwin(IOTHUB_CLIENT_HANDLE iotHubClientHandle )
       /* Send reported properties to IoT Hub */
       if (IoTHubDeviceTwin_SendReportedStateThermostat(thermostat, deviceTwinCallback, NULL) != IOTHUB_CLIENT_OK)
 	{
-	  printf("Failed sending serialized reported state\n");
+	  syslog(LOG_ERR,"Failed sending serialized reported state");
 	}
       else
 	{
-	  printf("Send DeviceInfo object to IoT Hub at startup\n");
+	  //printf("Send DeviceInfo object to IoT Hub at startup\n");
 
 	  thermostat->ObjectType = "DeviceInfo";
 	  thermostat->IsSimulatedDevice = 0;
@@ -335,10 +335,8 @@ void getConnectString(char *deviceIdtmp,char *connectStringtmp){
       syslog(LOG_ERR,errStr);
     }
   }
-  printf("deviceIDに %s が設定されました",deviceIdtmp);
-
   fseek(fp, 0L, SEEK_SET);
-    while (fgets(buf, 256, fp) != NULL) {
+  while (fgets(buf, 256, fp) != NULL) {
     char s2[] = "connectionString";
     /* ここではfgets()により１行単位で読み出し */
     if ((ret = strstr(buf, s2)) != NULL ) {
@@ -363,13 +361,13 @@ void remote_monitoring_init(IOTHUB_CLIENT_HANDLE *iotHubClientHandle   )
   
   if (platform_init() != 0)
     {
-      printf("Failed to initialize the platform.\n");
+      syslog(LOG_ERR,"Failed to initialize the platform.");
     }
   else
     {
       if (SERIALIZER_REGISTER_NAMESPACE(Contoso) == NULL)
 	{
-	  printf("Unable to SERIALIZER_REGISTER_NAMESPACE\n");
+	    syslog(LOG_ERR,"Unable to SERIALIZER_REGISTER_NAMESPACE");
 	}
       else
 	{
@@ -378,7 +376,7 @@ void remote_monitoring_init(IOTHUB_CLIENT_HANDLE *iotHubClientHandle   )
 	  	  
 	  if (*iotHubClientHandle == NULL)
 	    {
-	      printf("Failure in IoTHubClient_CreateFromConnectionString\n");
+	      syslog(LOG_ERR,"Failure in IoTHubClient_CreateFromConnectionString");
 	    }
 	  else
 	    {
@@ -386,7 +384,7 @@ void remote_monitoring_init(IOTHUB_CLIENT_HANDLE *iotHubClientHandle   )
 	      // For mbed add the certificate information
 	      if (IoTHubClient_SetOption(*iotHubClientHandle, "TrustedCerts", certificates) != IOTHUB_CLIENT_OK)
 		{
-		  printf("Failed to set option \"TrustedCerts\"\n");
+		  syslog(LOG_ERR,"Failed to set option \"TrustedCerts\"");
 		}
 #endif // MBED_BUILD_TIMESTAMP
 	      Thermostat *thermostat;
@@ -396,7 +394,7 @@ void remote_monitoring_init(IOTHUB_CLIENT_HANDLE *iotHubClientHandle   )
 
 	      if (SERIALIZE(&buffer, &bufferSize, thermostat->ObjectType, thermostat->Version, thermostat->IsSimulatedDevice, thermostat->DeviceProperties) != CODEFIRST_OK)
 		{
-		  (void)printf("Failed serializing DeviceInfo\n");
+  		  syslog(LOG_ERR,"Failed serializing DeviceInfo");
 		}	
 	      else
 		{

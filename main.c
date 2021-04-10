@@ -122,11 +122,10 @@ int main(void)
   getConnectString(deviceId,connectionString);
   IOTHUB_CLIENT_HANDLE iotHubClientHandle= IoTHubClient_CreateFromConnectionString(connectionString, MQTT_Protocol);
   remote_monitoring_init(&iotHubClientHandle);
-  syslog(LOG_NOTICE, "IoThub Init OK!");
 
   if  (iotHubClientHandle== NULL)
     {
-      syslog(LOG_NOTICE, "Failure in iotHubClientHandle_NULL");
+      syslog(LOG_ERR, "Failure in iotHubClientHandle_NULL");
     }
   else
     {
